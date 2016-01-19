@@ -59,7 +59,7 @@
             android:key="prefAppVersion"
             android:layout="@layout/switch_preference"
             android:summary="Verzija"
-            android:title="Števci prometa 1.0"
+            android:title="Števci prometa 1.0.0"
 
             />
 
