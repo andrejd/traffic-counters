@@ -101,7 +101,7 @@ public class CountersUpdateService extends IntentService {
         if(mIntent.getAction() != Intent.ACTION_SYNC) {
             AlarmReceiver.completeWakefulIntent(mIntent);
         }
-        
+
     }
 
 
