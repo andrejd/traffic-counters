@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen
+
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+
+    <PreferenceCategory
+        android:layout="@layout/preference_category"
+        android:title="@string/categoryUpdate" >
+
+        <SwitchPreferenceCompat
+            android:key="prefRefreshOnBackground"
+            android:layout="@layout/switch_preference"
+            android:summaryOff="@string/automaticUpdateOn"
+            android:summaryOn="@string/automaticUpdateOn"
+            android:title="@string/automaticUpdate"
+            />
+
+
+        <SwitchPreferenceCompat
+            android:dependency="prefRefreshOnBackground"
+            android:layout="@layout/switch_preference"
+            android:key="prefRefreshWifiOnly"
+            android:summaryOff="@string/refreshWifiMobile"
+            android:summaryOn="@string/refreshWifi"
+            android:title="@string/refreshOnlyOnWifi"
+
+            />
+
+
+        <!--<SwitchPreference
+            android:title="@string/original_switch_preference"
+            android:summaryOn="@string/original_switch_preference_on"
+            android:summaryOff="@string/original_switch_preference_off"
+            />-->
+    </PreferenceCategory>
+
+    <!--<PreferenceCategory
+        android:dependency="prefRefreshOnBackground"
+        android:layout="@layout/preference_category"
+        android:title="Obvestila">-->
+        <SwitchPreferenceCompat
+            android:layout="@layout/switch_preference"
+            android:dependency="prefRefreshOnBackground"
+            android:key="prefNotifications"
+            android:summaryOff="Obvestila o gostem prometu z zastoji na priljubljenih števcih ne bodo prikazana"
+            android:summaryOn="Obvestila o gostem prometu z zastoji na priljubljenih števcih bodo prikazana"
+            android:title="Prikaži obvestila"
+
+            />
+
+    <!--</PreferenceCategory>-->
+
+    <PreferenceCategory
+        android:layout="@layout/preference_category"
+        android:title="O aplikaciji">
+        <Preference
+            android:selectable="false"
+            android:key="prefAppVersion"
+            android:layout="@layout/switch_preference"
+            android:summary="Verzija"
+            android:title="Števci prometa 1.0"
+
+            />
+
+    </PreferenceCategory>
+
+</PreferenceScreen>

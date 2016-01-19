@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="transparent">#00000000</color>
+    <!-- this is needed as preference_category_material layout is using this color as the text color -->
+    <color name="preference_fallback_accent_color">@color/colorAccent</color>
+
+</resources>

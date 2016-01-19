@@ -1,0 +1,23 @@
+<resources>
+    <string name="app_name">Števci prometa</string>
+
+    <string name="action_settings">Nastavitve</string>
+    <string name="search_counters_hint">Iskanje</string>
+    <string name="subtitle_list">Seznam</string>
+    <string name="title_counters">Števci prometa</string>
+
+    <string name="current_show_mode"/>
+
+    <string name="categoryUpdate">Beleženje zgodovine</string>
+    <string name="automaticUpdate">Osveževanje števcev v ozadju</string>
+    <string name="automaticUpdateOn">Števci bodo osveženi samodejno, podatki pa bodo shranjeni na napravi za poznejši pregled porazdelitve prometa. Poraba baterije se bo pri vključeni funkciji povečala.</string>
+    <string name="automaticUpdateOff">Števce morate osvežiti ročno</string>
+    <string name="refreshOnlyOnWifi">Uporabljaj samo Wi-Fi omrežje</string>
+    <string name="refreshWifi">Števci bodo posodobljeni samo pri aktivni Wi-Fi povezavi</string>
+    <string name="refreshWifiMobile">Števci bodo posodobljeni pri aktivni Wi-Fi ali mobilni povezavi</string>
+    <string name="counter_detail_activity_title">Porazdelitev prometa</string>
+    <string name="no_data">Ni podatkov</string>
+    <string name="appVersion">Vsi uporabljeni podatki v aplikaciji so last Direkcije Republike Slovenije za Infrastrukturo in so pridobljeni s spletne strani opendata.si</string>
+
+
+</resources>

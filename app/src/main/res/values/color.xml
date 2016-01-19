@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#b71c1c</color>
+    <color name="colorPrimaryDark">#9c2020</color>
+    <color name="colorPrimaryLight">#CFD8DC</color>
+   <!-- <color name="colorAccent">#FFC107</color>-->
+    <color name="colorAccent">#ffffff</color>
+    <color name="colorTextPrimary">#212121</color>
+    <color name="colorTextSecondary">#727272</color>
+    <color name="divider">#B6B6B6</color>
+
+    <!-- this is needed as preference_category_material layout is using this color as the text color -->
+    <color name="preference_fallback_accent_color">@color/colorAccent</color>
+
+    <color name="colorLevel0">#727272</color>
+    <color name="colorLevel1">#94ff00</color>
+    <color name="colorLevel2">#dbff00</color>
+    <color name="colorLevel3">#ffcc00</color>
+    <color name="colorLevel4">#ff9900</color>
+    <color name="colorLevel5">#ea1b1b</color>
+    <color name="colorLevel6">#727272</color>
+
+
+
+</resources>

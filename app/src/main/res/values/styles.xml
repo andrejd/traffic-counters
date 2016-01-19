@@ -1,0 +1,63 @@
+<resources>
+
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="@style/Theme.AppCompat.NoActionBar">
+        <!-- Customize your theme here. -->
+        <item name="preferenceTheme">@style/PreferenceThemeOverlay.v14.Material</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorAccent">@color/colorAccent</item>
+        <item name="android:textColorPrimary">@drawable/text_color_states</item>
+        <item name="colorButtonNormal">@drawable/button_color_state</item>
+        <item name="android:buttonStyle">@style/AppButtonStyle</item>
+    </style>
+
+
+    <style name="Divider">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">1dp</item>
+        <item name="android:background">@android:color/white</item>
+    </style>
+
+    <style name="CardViewStyle.Dark" parent="CardView.Dark">
+        <item name="android:foreground">?android:attr/selectableItemBackground</item>
+        <item name="cardBackgroundColor">#424242</item>
+    </style>
+
+    <style name="MenuButtonsStyle">
+        <!--<item name="fab_size">large</item>-->
+        <item name="fab_showAnimation">@anim/jump_from_down</item>
+        <item name="fab_hideAnimation">@anim/jump_to_down</item>
+        <item name="fab_shadowColor">#444</item>
+        <item name="fab_colorNormal">#b71c1c</item>
+        <item name="fab_colorPressed">#9c2020</item>
+        <item name="fab_colorRipple">@color/colorAccent</item>
+    </style>
+
+    <!-- Button Style -->
+    <style name="AppButtonStyle" parent="Widget.AppCompat.Button">
+        <item name="android:textColor">@drawable/button_color_state</item>
+    </style>
+
+
+
+
+    <!--<style name="PreferenceScreen" parent="@style/Theme.AppCompat">
+        <item name="android:textColor">@android:color/white</item>
+    </style>-->
+
+    <style name="CounterDetailScreen" parent="AppTheme">
+
+
+    </style>
+
+    <style name="Preference_TextAppearanceMaterialBody2">
+        <item name="android:textSize">14sp</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/colorAccent</item>
+
+    </style>
+
+
+</resources>
