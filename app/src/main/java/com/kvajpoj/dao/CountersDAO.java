@@ -398,6 +398,10 @@ public final class CountersDAO {
                         // here we add 10 minutes, so time is shown as current; time in raw data is 10 min behind
                         // or events are 10 minutes old
                         e.setUpdated(tc.getUpdated() + (int)(gc.getTimeZone().getRawOffset()/1000L) + (60*10));
+                        if(gc.getTimeZone().inDaylightTime(new Date())) {
+                            e.setUpdated(e.getUpdated() + 60*60);
+                        }
+
 
                         e.setTime(sdf.format(new Date(e.getUpdated()*1000L)));
                         e.setBusyIndex(tc.getStevci_occ());
