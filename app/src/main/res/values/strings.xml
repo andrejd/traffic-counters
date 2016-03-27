@@ -1,10 +1,10 @@
 <resources>
-    <string name="app_name">Števci prometa</string>
+    <string name="app_name">Prometni števci</string>
 
     <string name="action_settings">Nastavitve</string>
     <string name="search_counters_hint">Iskanje</string>
     <string name="subtitle_list">Seznam</string>
-    <string name="title_counters">Števci prometa</string>
+    <string name="title_counters">Prometni števci</string>
 
     <string name="current_show_mode"/>
 
