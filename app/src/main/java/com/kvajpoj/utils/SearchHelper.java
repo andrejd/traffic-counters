@@ -26,7 +26,7 @@ import android.widget.TextView;
 import com.kvajpoj.R;
 import com.kvajpoj.events.BusEvent;
 
-import de.greenrobot.event.EventBus;
+import org.greenrobot.eventbus.EventBus;
 
 
 public class SearchHelper {

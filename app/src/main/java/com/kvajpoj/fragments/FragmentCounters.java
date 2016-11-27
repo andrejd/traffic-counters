@@ -18,9 +18,10 @@ import com.kvajpoj.models.Counter;
 import com.kvajpoj.touch.OnStartDragListener;
 import com.kvajpoj.touch.SimpleItemTouchHelperCallback;
 
+import org.greenrobot.eventbus.EventBus;
+
 import butterknife.Bind;
 import butterknife.ButterKnife;
-import de.greenrobot.event.EventBus;
 import io.realm.RealmResults;
 
 /**

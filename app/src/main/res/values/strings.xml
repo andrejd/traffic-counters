@@ -16,7 +16,7 @@
     <string name="refreshWifi">Števci bodo posodobljeni samo pri aktivni Wi-Fi povezavi</string>
     <string name="refreshWifiMobile">Števci bodo posodobljeni pri aktivni Wi-Fi ali mobilni povezavi</string>
     <string name="counter_detail_activity_title">Porazdelitev prometa</string>
-    <string name="no_data">Ni podatkov</string>
+    <string name="no_data">Ni podatka</string>
     <string name="appVersion">Vsi uporabljeni podatki v aplikaciji so last Direkcije Republike Slovenije za Infrastrukturo in so pridobljeni s spletne strani opendata.si</string>
 
 

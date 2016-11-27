@@ -8,7 +8,7 @@ import retrofit.http.GET;
  */
 public interface TrafficFeedService {
 
-    public static final String BASE_URL = "http://opendata.si";
+    String BASE_URL = "http://opendata.si";
 
     @GET("/promet/counters/")
     void getFeed(Callback<TrafficFeed> callback);

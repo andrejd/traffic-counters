@@ -20,7 +20,7 @@ public class ViewPagerAdapter extends FragmentStatePagerAdapter {
 
     public static final int TAB_FAVORITES = 0;
     public static final int TAB_LIST = 1;
-    //public static final int TAB_MAP = 2;
+    public static final int TAB_MAP = 2;
 
     private static final int TAB_COUNT = 2;
     List<Object> mPages = Collections.EMPTY_LIST;

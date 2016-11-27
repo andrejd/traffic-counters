@@ -21,6 +21,8 @@ import com.kvajpoj.touch.ItemTouchHelperAdapter;
 import com.kvajpoj.touch.ItemTouchHelperViewHolder;
 import com.kvajpoj.touch.OnStartDragListener;
 
+import org.greenrobot.eventbus.EventBus;
+
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -28,7 +30,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-import de.greenrobot.event.EventBus;
+
 import io.realm.Realm;
 import io.realm.RealmRecyclerViewAdapter;
 import io.realm.RealmResults;
@@ -87,7 +89,8 @@ public class CountersListAdapter extends RealmRecyclerViewAdapter<Counter, Count
     @Override
     public void onBindViewHolder(final MyViewHolder myViewHolder, final int position) {
 
-        final Counter tc = realmResults.get(position);
+        //final Counter tc = realmResults.get(position);
+        final Counter tc = getData().get(position);
         final String tcId = tc.getId();
 
 
@@ -114,8 +117,9 @@ public class CountersListAdapter extends RealmRecyclerViewAdapter<Counter, Count
 
         if(e != null)
         {
-            summary = e.getStatusOpis() + ", " + e.getNbrOfCars() + " vozil/h, povprečna hitrost "
-                    + e.getAvgSpeed() + " km/h (omejitev " + e.getMaxSpeed() + " km/h), razmik " + e.getAvgGap() + " s";
+            summary = e.getStatusOpis() + ", " + e.getNbrOfCars() + " vozil/h, povpr. hitrost "
+                    //+ e.getAvgSpeed() + " km/h (omejitev " + e.getMaxSpeed() + " km/h), razmik " + e.getAvgGap() + " s";
+                    + e.getAvgSpeed() + " km/h, razmik " + e.getAvgGap() + " s";
 
             lblTime = e.getTime().toUpperCase();
         }
@@ -317,7 +321,7 @@ public class CountersListAdapter extends RealmRecyclerViewAdapter<Counter, Count
             Realm realm = Realm.getDefaultInstance();
 
             List<Counter> list = new ArrayList<>();
-            list.addAll(realmResults);
+            list.addAll(getData());
 
             Log.i("SWAP", "Swaping position " + origPosition + " to position " + endPosition);
 

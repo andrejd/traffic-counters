@@ -39,6 +39,10 @@ import com.kvajpoj.models.Counter;
 import com.kvajpoj.models.CounterEvent;
 import com.wang.avi.AVLoadingIndicatorView;
 
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
+
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -50,9 +54,6 @@ import java.util.TimeZone;
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
-import de.greenrobot.event.EventBus;
-import de.greenrobot.event.Subscribe;
-import de.greenrobot.event.ThreadMode;
 import io.realm.Realm;
 import io.realm.RealmList;
 import io.realm.RealmResults;
@@ -115,7 +116,7 @@ public class CounterDetailActivity extends AppCompatActivity implements
     private double mAverageGap = 0;
     private double mAverageCars = 0;
     private double mMaxSpeed = 0;
-    private double mNbrCounterEvents = 0;
+    //private double mNbrCounterEvents = 0;
     private boolean mButtonsAreSet = false;
     private List<Button> btnCousins = new ArrayList<>(4);
 
@@ -195,7 +196,6 @@ public class CounterDetailActivity extends AppCompatActivity implements
                         // get cousins
                         RealmResults<Counter> cousins = realm.where(Counter.class)
                                 .equalTo("Location", tmp.getLocation())
-                                //.findAllSorted("Id", true);
                                 .findAllSorted("Id", Sort.ASCENDING);
 
                         for (int i = 0; i < cousins.size(); i++) {
@@ -223,7 +223,7 @@ public class CounterDetailActivity extends AppCompatActivity implements
                                     for (int i = 0; i < btnCousins.size(); i++) {
                                         btnCousins.get(i).setEnabled(true);
                                     }
-                                    ((Button) v).setEnabled(false);
+                                    v.setEnabled(false);
                                     initialize(c.getId());
 
                                 }
@@ -246,18 +246,14 @@ public class CounterDetailActivity extends AppCompatActivity implements
                     if (last != null) {
 
                         mMaxSpeed = last.getMaxSpeed();
-                        mNbrCounterEvents = tmp.getEvents().size();
                         lastEventUpdateTime = last.getUpdated();
 
                     } else {
 
                         mMaxSpeed = 0;
-                        mNbrCounterEvents = 0;
-
                         Calendar c = Calendar.getInstance();
                         int minutes = c.get(Calendar.MINUTE);
-
-                        minutes = minutes - (minutes % 5);
+                        minutes = minutes - (minutes % 10);
 
                         GregorianCalendar gc = new GregorianCalendar(c.get(Calendar.YEAR),
                                 c.get(Calendar.MONTH),
@@ -268,18 +264,16 @@ public class CounterDetailActivity extends AppCompatActivity implements
                         lastEventUpdateTime = (int) (gc.getTimeInMillis() / 1000L);
 
                     }
-                } else {
-
-                    mCounterId = "";
-
                 }
-            } catch (Exception exception) {
-
+                else {
+                    mCounterId = "";
+                }
+            }
+            catch (Exception exception) {
                 Log.e("Counters", "Error initializing data: " + exception.toString());
                 stopLoader();
-
-            } finally {
-
+            }
+            finally {
                 if (realm != null) realm.close();
             }
         }
@@ -293,22 +287,11 @@ public class CounterDetailActivity extends AppCompatActivity implements
 
         // draw bars behind lines
         mChart.setDrawOrder(new CombinedChart.DrawOrder[]{
-            CombinedChart.DrawOrder.BAR,
-            CombinedChart.DrawOrder.LINE,
+                CombinedChart.DrawOrder.BAR,
+                CombinedChart.DrawOrder.LINE
         });
 
         mChart.getLegend().setEnabled(true);
-
-        /*if (mNbrCounterEvents > 0) {
-
-            mChart.setNoDataText("Samo trenutek ...");
-
-        } else {
-
-            mChart.setNoDataText("Ups, ta števec je brez podatkov ...");
-
-        }*/
-
         mChart.setOnChartValueSelectedListener(null);
         mChart.setOnChartValueSelectedListener(this);
 
@@ -342,11 +325,15 @@ public class CounterDetailActivity extends AppCompatActivity implements
         leftAxis.setDrawGridLines(false);
         leftAxis.setTextColor(Color.WHITE);
         leftAxis.setEnabled(false);
+        leftAxis.setSpaceBottom(0);
+        leftAxis.setAxisMinValue(0);
 
         YAxis rightAxis = mChart.getAxisRight();
         rightAxis.setDrawGridLines(false);
         rightAxis.setTextColor(Color.WHITE);
         rightAxis.setEnabled(false);
+        rightAxis.setSpaceBottom(0);
+        rightAxis.setAxisMinValue(0);
 
         LimitLine ll = new LimitLine((float) mMaxSpeed, (int) mMaxSpeed + " km/h");
         ll.setLineColor(Color.GRAY);
@@ -357,7 +344,7 @@ public class CounterDetailActivity extends AppCompatActivity implements
         ll.setLabel("");
 
         rightAxis.removeAllLimitLines();
-        rightAxis.addLimitLine(ll);
+        //rightAxis.addLimitLine(ll);
 
         // x axis
         XAxis xAxis = mChart.getXAxis();
@@ -367,8 +354,8 @@ public class CounterDetailActivity extends AppCompatActivity implements
         xAxis.setTextColor(Color.WHITE);
         xAxis.setDrawAxisLine(true);
         xAxis.setDrawGridLines(false);
-        xAxis.setDrawLimitLinesBehindData(false);
 
+        xAxis.setDrawLimitLinesBehindData(false);
 
         SharedPreferences sharedPref = this.getPreferences(Context.MODE_PRIVATE);
         mShowMode = sharedPref.getInt(getString(R.string.current_show_mode), ProcessEvent.HOUR08);
@@ -382,36 +369,26 @@ public class CounterDetailActivity extends AppCompatActivity implements
         // mAverageCars = 0;
         // mMaxSpeed = 0;
 
-
         List<String> dummyHours = generateDummyTimes(lastEventUpdateTime, mShowMode);
-        String[] hours = new String[dummyHours.size()];
-        hours = dummyHours.toArray(hours);
 
         CombinedData data = new CombinedData(dummyHours);
-        data.setData(generateDummyBarData(dummyHours.size()));
-        data.setData(generateDummyLineData(dummyHours.size()));
+        //data.setData(generateDummyBarData(dummyHours.size()));
+        //data.setData(generateDummyLineData(dummyHours.size()));
 
         mToolbar.setSubtitle("v zadnjih 24 urah");
-        String msg = "V zadnjih 24 urah je bila povprečna hitrost ";
+        //String msg = "V zadnjih 24 urah je bila povprečna hitrost ";
 
         switch (mShowMode) {
             case ProcessEvent.HOUR08:
                 mToolbar.setSubtitle("v zadnjih 8 urah");
-                msg = "V zadnjih 8 urah je bila povprečna hitrost ";
+                //msg = "V zadnjih 8 urah je bila povprečna hitrost ";
                 break;
 
             case ProcessEvent.HOUR01:
                 mToolbar.setSubtitle("v zadnji uri");
-                msg = "V zadnji uri je bila povprečna hitrost ";
+                //msg = "V zadnji uri je bila povprečna hitrost ";
                 break;
         }
-
-
-        //mCounterDetail.setText(msg + (int) mAverageSpeed + " km/h pri dovoljeni hitrosti " + (int) mMaxSpeed + " km/h, povprečno je po cesti peljalo " + (int) mAverageCars +
-        //        " vozil/h s povprečnim razmikom " + (int) mAverageGap + " sekund med dvema voziloma");
-
-        //mCounterDetail.setText(msg + "    km/h pri dovoljeni hitrosti      km/h, povprečno je po cesti peljalo     vozil/h s povprečnim razmikom "
-        //        + "    sekund med dvema voziloma");
 
         mCounterTime.setText("");
         mCounterCars.setText("");
@@ -428,15 +405,12 @@ public class CounterDetailActivity extends AppCompatActivity implements
         /////////////////////////////////////////////////////////////
 
         // generate real data
-
         EventBus.getDefault().post(new ProcessEvent(mShowMode));
     }
 
     private String formatDate(int timeStampInSeconds) {
-
         return mSDF.format(new Date(timeStampInSeconds * 1000L));
     }
-
 
     @Override
     public void onMenuToggle(final boolean isOpen) {
@@ -456,19 +430,16 @@ public class CounterDetailActivity extends AppCompatActivity implements
 
                 mFabOption1.setImageResource(R.drawable.ic_24h);
                 mFabOption2.setImageResource(R.drawable.ic_1h);
-
             }
         }
     }
-
 
     @Override
     protected void onStop() {
         EventBus.getDefault().unregister(this);
         super.onStop();
-        finish();
+        if(!isFinishing()) finish();
     }
-
 
     public List<String> generateDummyTimes(int lastTime, int mode) {
 
@@ -477,36 +448,32 @@ public class CounterDetailActivity extends AppCompatActivity implements
         if (mode == ProcessEvent.HOUR01) showTime = 60 * 60 * 1;
 
         int firstTime = lastTime - showTime;
-
         int eventTime;
-        /*int lastEvent = 0;
-        int index = 0;
-        int valueCnt = 0;
-        boolean skipAdding = true;*/
 
         List<String> mDummyHours = new ArrayList<>();
         mHours = new ArrayList<>();
 
-        for (int t = firstTime; t <= lastTime; t += (5 * 60)) {
-
+        for (int t = firstTime; t <= lastTime; t += (10 * 60)) {
             eventTime = t;
             String formatedDate = formatDate(eventTime);
             mDummyHours.add(formatedDate);
             mHours.add(formatedDate);
-
         }
-
         return mDummyHours;
     }
 
+    private Boolean compareTimes(int time1, int time2, int gap) {
+        return time1 >= (time2 - gap) && time1 <= (time2 + gap);
+    }
 
-    @Subscribe(threadMode = ThreadMode.Async)
+
+    @Subscribe(threadMode = ThreadMode.ASYNC)
     public void process(ProcessEvent event) {
 
         // data calculation
         // get last event time; this will be our end time
 
-        Counter cnt = null;
+        Counter cnt;
         Realm realm = null;
 
         try {
@@ -533,7 +500,6 @@ public class CounterDetailActivity extends AppCompatActivity implements
 
                 int eventTime;
                 int lastEvent = 0;
-                int index = 0;
                 int valueCnt = 0;
                 boolean skipAdding = true;
 
@@ -544,17 +510,19 @@ public class CounterDetailActivity extends AppCompatActivity implements
                 mAverageSpeed = 0;
                 mAverageGap = 0;
 
-                for (int t = firstTime; t <= lastTime; t += (5 * 60)) {
-
+                for (int t = firstTime; t <= lastTime; t += (10 * 60)) {
                     eventTime = t;
                     // build proxy event
                     GraphEvent ge = null;
-
+                    //Log.i("Counters", "Processing time point " + sdf.format(new Date(eventTime*1000L)));
                     for (int i = lastEvent; i < counterEvents.size(); i++) {
 
                         CounterEvent cev = counterEvents.get(i);
 
-                        if (cev.getUpdated() == eventTime) {
+                        //if (cev.getUpdated() == eventTime) {
+                        if(compareTimes(eventTime, cev.getUpdated(), 5*60 )) {
+                            //Log.i("Counters", "Found event that happened  at " + sdf.format(new Date(cev.getUpdated()*1000L)));
+
                             ge = new GraphEvent();
 
                             ge.setId(cev.getId());
@@ -577,23 +545,28 @@ public class CounterDetailActivity extends AppCompatActivity implements
                             lastEvent = i;
                             break;
                         }
-
-                        if (cev.getUpdated() < eventTime) {
-                            lastEvent = i;
+                        else {
+                            //Log.i("Counters", "Counter event time " + sdf.format(new Date(cev.getUpdated()*1000L)) + "; requested time: " + sdf.format(new Date(eventTime*1000L)));
                         }
 
+                        // start with this last event
+                        //if (cev.getUpdated() < eventTime) {
+                        if(compareTimes(eventTime, cev.getUpdated(), 5*60 )) {
+                            lastEvent = i;
+                        }
                     }
 
                     if (ge == null) {
                         ge = new GraphEvent();
                         ge.setStatus(-1);
+
                     }
 
                     ge.setTime(eventTime);
 
                     // if ge has no event it means it is fake
                     if (ge.getEvent() == null) {
-                        if (skipAdding == false) {
+                        if(skipAdding == false) {
                             mHours.add(formatDate(eventTime));
                             mEvents.add(ge);
                         }
@@ -603,7 +576,7 @@ public class CounterDetailActivity extends AppCompatActivity implements
                         mEvents.add(ge);
                     }
 
-                    index++;
+                    //index++;
                 }
 
                 mAverageCars /= valueCnt;
@@ -624,7 +597,7 @@ public class CounterDetailActivity extends AppCompatActivity implements
         }
     }
 
-    @Subscribe(threadMode = ThreadMode.MainThread)
+    @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEvent(FinishedEvent event) {
         String[] hours = new String[mHours.size()];
         hours = mHours.toArray(hours);
@@ -648,7 +621,8 @@ public class CounterDetailActivity extends AppCompatActivity implements
                 break;
         }
 
-        mCounterDetail.setText(msg + (int) mAverageSpeed + " km/h pri dovoljeni hitrosti " + (int) mMaxSpeed + " km/h, povprečno je po cesti peljalo " + (int) mAverageCars +
+        //mCounterDetail.setText(msg + (int) mAverageSpeed + " km/h pri dovoljeni hitrosti " + (int) mMaxSpeed + " km/h, povprečno je po cesti peljalo " + (int) mAverageCars +
+        mCounterDetail.setText(msg + (int) mAverageSpeed + " km/h, povprečno je po cesti peljalo " + (int) mAverageCars +
                 " vozil/h s povprečnim razmikom " + (int) mAverageGap + " sekund med dvema voziloma");
 
         mChart.setData(data);
@@ -686,14 +660,14 @@ public class CounterDetailActivity extends AppCompatActivity implements
         initialize(mCounterId);
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == android.R.id.home) {
-            finish();
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
-    }
+    //@Override
+    //public boolean onOptionsItemSelected(MenuItem item) {
+        //if (item.getItemId() == android.R.id.home) {
+        //    if(!isFinishing()) finish();
+        //    return true;
+        //}
+    //    return super.onOptionsItemSelected(item);
+    //}
 
     void initToolbar() {
         setSupportActionBar(mToolbar);
@@ -702,10 +676,10 @@ public class CounterDetailActivity extends AppCompatActivity implements
 
     private LineData generateDummyLineData(int size) {
 
-        long startTime = System.currentTimeMillis();
+        //long startTime = System.currentTimeMillis();
 
         List<GraphEvent> mDummyEvents = new ArrayList<>();
-        ArrayList<Entry> dummyEntries = new ArrayList<Entry>();
+        ArrayList<Entry> dummyEntries = new ArrayList<>();
 
         for (int i = 0; i < size; i++) {
             mDummyEvents.add(new GraphEvent());
@@ -755,8 +729,8 @@ public class CounterDetailActivity extends AppCompatActivity implements
                 GraphEvent ge = mEvents.get(i);
 
                 // check if speed is 0 and event is null -> to interpolate value
-                if (ge.getSpeed() == 0 && ge.getEvent() == null)
-                    ge.setSpeed((int) mAverageSpeed);
+                //if (ge.getSpeed() == 0 && ge.getEvent() == null)
+                //    ge.setSpeed((int) mAverageSpeed);
 
                 Entry ld = new Entry(ge.getSpeed(), i);
                 entries.add(ld);
@@ -882,6 +856,7 @@ public class CounterDetailActivity extends AppCompatActivity implements
         set.setDrawValues(false);
         set.setValueTextColor(Color.rgb(60, 220, 78));
         set.setBarSpacePercent(0);
+        set.setHighlightEnabled(false);
         set.setValueTextSize(10f);
 
         d.addDataSet(set);
@@ -893,17 +868,12 @@ public class CounterDetailActivity extends AppCompatActivity implements
 
     @Override
     public void onValueSelected(Entry e, int dataSetIndex, Highlight h) {
-
         try {
-
             updateUI(e.getXIndex());
         }
         catch (Exception ex) {
-
             Log.e(LOG, "Exception during item selection " + ex.toString());
-
         }
-
     }
 
     private void updateUI(int index) {
@@ -922,11 +892,20 @@ public class CounterDetailActivity extends AppCompatActivity implements
 
             } else {
 
-                mCounterCars.setText(ge.getCars() + " vozil/h");
-                mCounterTimeout.setText("razmik " + ge.getAvgGap() + " s");
-                mCounterStatus.setText(ge.getStatusString());
-                mCounterSpeed.setText(ge.getSpeed() + " km/h");
-                mCounterTime.setText(ge.getTimeString());
+                if(ge.getStatus() > -1) {
+                    mCounterCars.setText(ge.getCars() + " vozil/h");
+                    mCounterTimeout.setText("razmik " + ge.getAvgGap() + " s");
+                    mCounterStatus.setText(ge.getStatusString());
+                    mCounterSpeed.setText(ge.getSpeed() + " km/h");
+                    mCounterTime.setText(ge.getTimeString());
+                }
+                else {
+                    mCounterTime.setText(mHours.get(index));
+                    mCounterCars.setText("");
+                    mCounterTimeout.setText("");
+                    mCounterStatus.setText(R.string.no_data);
+                    mCounterSpeed.setText("");
+                }
 
             }
 

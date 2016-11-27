@@ -43,24 +43,16 @@
 -keep class * implements android.os.Parcelable {
   public static final android.os.Parcelable$Creator *;
 }
-# realm
--keep class io.realm.annotations.RealmModule
--keep @io.realm.annotations.RealmModule class *
--keep class io.realm.internal.Keep
--keep @io.realm.internal.Keep class *
--dontwarn javax.**
--dontwarn io.realm.**
-
 
 # eventbus
+-keepattributes *Annotation*
 -keepclassmembers class ** {
-    public void onEvent*(**);
-    public void process*(**);
-
+    @org.greenrobot.eventbus.Subscribe <methods>;
 }
+-keep enum org.greenrobot.eventbus.ThreadMode { *; }
 
 # Only required if you use AsyncExecutor
--keepclassmembers class * extends de.greenrobot.event.util.ThrowableFailureEvent {
+-keepclassmembers class * extends org.greenrobot.eventbus.util.ThrowableFailureEvent {
     <init>(java.lang.Throwable);
 }
 

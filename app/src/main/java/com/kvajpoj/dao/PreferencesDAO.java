@@ -12,7 +12,9 @@ import com.kvajpoj.service.CountersForegroundService;
 import com.kvajpoj.service.CountersUpdateService;
 import com.kvajpoj.service.ServiceConstants;
 
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 
 /**
  * Created by Andrej on 27.9.2015.
@@ -28,11 +30,13 @@ public final class PreferencesDAO implements SharedPreferences.OnSharedPreferenc
 
 
     private PreferencesDAO(Context ctx) {
+
         mContext = ctx;
         setupUpdate(ctx);
     }
 
     public static synchronized PreferencesDAO getInstance(Context ctx) {
+
         if (instance == null) {
             instance = new PreferencesDAO(ctx);
         }
@@ -41,10 +45,6 @@ public final class PreferencesDAO implements SharedPreferences.OnSharedPreferenc
 
     public boolean isRefreshOnlyOnWifi() {
         return mRefreshOnlyOnWifi;
-    }
-
-    public void setRefreshOnlyOnWifi(boolean refreshOnlyOnWifi) {
-        mRefreshOnlyOnWifi = refreshOnlyOnWifi;
     }
 
     public boolean isNotifications() {
@@ -63,19 +63,12 @@ public final class PreferencesDAO implements SharedPreferences.OnSharedPreferenc
         return mRefreshManual;
     }
 
-    public boolean isRefreshBackground() {
-        return mRefreshBackground;
-    }
+    public void reloadValues(Context ctx) {
 
-
-    public void reloadValues(Context ctx)
-    {
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(ctx);
         sharedPrefs.registerOnSharedPreferenceChangeListener(this);
-
         mRefreshBackground = sharedPrefs.getBoolean("prefRefreshOnBackground", false);
         mRefreshOnlyOnWifi = sharedPrefs.getBoolean("prefRefreshWifiOnly", false);
-
         mNotifications = sharedPrefs.getBoolean("prefNotifications", false);
     }
 
@@ -86,64 +79,63 @@ public final class PreferencesDAO implements SharedPreferences.OnSharedPreferenc
         reloadValues(ctx);
 
         if (mRefreshBackground == true) {
-
             mRefreshManual = false;
             updateCounters();
-
-        } else {
-
+        }
+        else {
             mRefreshManual = true;
             mRefreshOnlyOnWifi = false;
             mNotifications = false;
             cancelUpdateCounters();
-
         }
     }
 
     public void updateCounters() {
+        int nextTriggerSeconds;
+        int expiresTime = CountersDAO.getInstance().getDataExpiresTime();
+        int currentTime = (int) (System.currentTimeMillis() / 1000L);
 
-        // calculate when to update counter
-        Calendar c = Calendar.getInstance();
-        int minutes = c.get(Calendar.MINUTE);
-        int secs = c.get(Calendar.SECOND);
-        int seconds = minutes * 60;
-        int nextTriggerSeconds = 360 - secs - (seconds % (5 * 60));
-        Log.i("CounterService", "Setting next trigger in " + nextTriggerSeconds);
+        if (expiresTime == 0 || (currentTime > expiresTime)) { // data on server changes every 10 minutes
+            nextTriggerSeconds = 20;
+        }
+        else {
+            nextTriggerSeconds  = (expiresTime - currentTime) + 60;
+        }
 
+        Log.i("CountersUpdateService", "Setting next trigger in " + nextTriggerSeconds);
+
+        // starts service that keeps app alive and user aware of background activity
+        startCountersForegroundService();
+
+        // start counter updating
         cancelCountersUpdateAlarm();
-        //cancelAlarmClockAlarm();
-
-        startCountersForegroundService(nextTriggerSeconds);
         startCountersUpdateAlarm(nextTriggerSeconds);
-
-        /*if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            setAlarmClockAlarm(System.currentTimeMillis() + (nextTriggerSeconds - 5) * 1000);
-        }*/
-
-
     }
 
 
     public void cancelUpdateCounters() {
         stopCountersForegroundService();
         cancelCountersUpdateAlarm();
-        /*if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            cancelAlarmClockAlarm();
-        }*/
     }
 
     public void startCountersUpdateAlarm(int nextTriggerSeconds) {
+        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
+        Log.i("CountersUpdateService", "Setting next alarm time " + sdf.format(new Date(System.currentTimeMillis() + (nextTriggerSeconds * 1000))));
 
+        // alarmIntent that will periodically trigger counter update
         Intent alarmIntent = new Intent(mContext, CountersUpdateService.AlarmReceiver.class);
         alarmIntent.putExtra(CountersUpdateService.ONLY_WIFI_EXTRA, mRefreshOnlyOnWifi);
-        //Wrap in a pending intent which only fires once.
-        PendingIntent pi = PendingIntent.getBroadcast(mContext, 0, alarmIntent, PendingIntent.FLAG_UPDATE_CURRENT);//getBroadcast(context, 0, i, 0);
-        AlarmManager am = (AlarmManager) mContext.getSystemService(Context.ALARM_SERVICE);
 
+        //Wrap in a pending intent which only fires once.
+        PendingIntent pi = PendingIntent.getBroadcast(mContext, 0, alarmIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        AlarmManager am = (AlarmManager) mContext.getSystemService(Context.ALARM_SERVICE);
         am.setInexactRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + (nextTriggerSeconds * 1000), 1000 * 60 * 5, pi); //5 minutes
     }
 
     public void retriggerCountersUpdateAlarm(int nextTriggerSeconds) {
+
+        Log.i("CountersUpdateService", "Setting re-trigger time in " + nextTriggerSeconds);
 
         Intent alarmIntent = new Intent(mContext, CountersUpdateService.AlarmReceiver.class);
         alarmIntent.putExtra(CountersUpdateService.ONLY_WIFI_EXTRA, mRefreshOnlyOnWifi);
@@ -160,25 +152,23 @@ public final class PreferencesDAO implements SharedPreferences.OnSharedPreferenc
     public void cancelCountersUpdateAlarm() {
 
         Intent alarmIntent = new Intent(mContext, CountersUpdateService.AlarmReceiver.class);
-        PendingIntent pi = PendingIntent.getBroadcast(mContext, 0, alarmIntent, PendingIntent.FLAG_UPDATE_CURRENT);//getBroadcast(context, 0, i, 0);
+        PendingIntent pi = PendingIntent.getBroadcast(mContext, 0, alarmIntent, PendingIntent.FLAG_UPDATE_CURRENT);
         AlarmManager am = (AlarmManager) mContext.getSystemService(Context.ALARM_SERVICE);
         am.cancel(pi);
     }
 
 
-    private void startCountersForegroundService(int nextTriggerSeconds) {
+    private void startCountersForegroundService() {
 
         Intent service = new Intent(mContext, CountersForegroundService.class);
 
         if (!CountersForegroundService.IS_SERVICE_RUNNING) {
-
-            Log.i("CountersMService", "Starting service ...");
+            Log.i("CountersUpdateService", "Starting service ...");
             service.setAction(ServiceConstants.ACTION.START_FOREGROUND_ACTION);
-            service.putExtra("Delay", nextTriggerSeconds);
             CountersForegroundService.IS_SERVICE_RUNNING = true;
             mContext.startService(service);
         } else {
-            Log.i("CountersMService", "Service is already running ...");
+            Log.i("CountersUpdateService", "Service is already running ...");
         }
     }
 
@@ -186,14 +176,13 @@ public final class PreferencesDAO implements SharedPreferences.OnSharedPreferenc
     private void stopCountersForegroundService() {
 
         if (CountersForegroundService.IS_SERVICE_RUNNING) {
-
-            Log.i("CountersMService", "Stopping service ...");
+            Log.i("CountersUpdateService", "Stopping service ...");
             Intent service = new Intent(mContext, CountersForegroundService.class);
             service.setAction(ServiceConstants.ACTION.STOP_FOREGROUND_ACTION);
             CountersForegroundService.IS_SERVICE_RUNNING = false;
             mContext.startService(service);
         } else {
-            Log.i("CountersMService", "Service is already stopped!");
+            Log.i("CountersUpdateService", "Service is already stopped!");
         }
     }
 
@@ -202,16 +191,11 @@ public final class PreferencesDAO implements SharedPreferences.OnSharedPreferenc
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
 
         if (key.equals("prefRefreshOnBackground")) {
-
             setupUpdate(mContext);
-
         }
         else {
-
             reloadValues(mContext);
         }
     }
-
-
 }
 

@@ -1,14 +1,15 @@
 apply plugin: 'com.android.application'
+apply plugin: 'realm-android'
 
 android {
-    compileSdkVersion 23
-    buildToolsVersion "23.0.1"
+    compileSdkVersion 24
+    buildToolsVersion "24.0.0"
     defaultConfig {
         applicationId 'com.kvajpoj.counters'
         minSdkVersion 16
-        targetSdkVersion 23
-        versionCode 2
-        versionName "1.0.1"
+        targetSdkVersion 24
+        versionCode 3
+        versionName "1.0.2"
     }
     buildTypes {
         release {
@@ -19,7 +20,6 @@ android {
             debuggable true
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-            //applicationIdSuffix ".debug"
         }
     }
     packagingOptions {
@@ -30,20 +30,22 @@ android {
 
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
-    compile 'io.realm:realm-android:0.87.1'
-    compile 'com.android.support:appcompat-v7:23.1.1'
-    compile 'com.android.support:design:23.1.1'
-    compile 'com.android.support:preference-v14:23.1.1'
+
+    //compile 'io.realm:realm-android:0.87.1'
+    compile 'com.android.support:appcompat-v7:24.0.0'
+    compile 'com.android.support:design:24.0.0'
+    compile 'com.android.support:preference-v14:24.0.0'
+    compile 'com.android.support:recyclerview-v7:24.0.0'
     compile 'com.jakewharton:butterknife:7.0.1'
-    compile 'com.android.support:cardview-v7:23.1.1'
+    compile 'com.android.support:cardview-v7:24.0.0'
     compile 'com.squareup.retrofit:retrofit:1.9.0'
     compile 'com.squareup.okhttp:okhttp-urlconnection:2.0.0'
     compile 'com.squareup.okhttp:okhttp:2.0.0'
-    compile 'com.android.support:recyclerview-v7:23.1.1'
-    compile 'de.greenrobot:eventbus:3.0.0-beta1'
-    provided 'de.greenrobot:eventbus-annotation-processor:3.0.0-beta1'
+    compile 'org.greenrobot:eventbus:3.0.0'
     compile 'com.github.clans:fab:1.6.1'
-    compile 'com.github.PhilJay:MPAndroidChart:v2.1.6'
+    compile 'com.github.PhilJay:MPAndroidChart:v2.2.5'
+    compile 'io.realm:android-adapters:1.4.0'
+    //compile 'com.github.PhilJay:MPAndroidChart:v3.0.0-beta1'
     //https://github.com/81813780/AVLoadingIndicatorView
     compile 'com.wang.avi:library:1.0.0'
     compile 'com.nineoldandroids:library:2.4.0'

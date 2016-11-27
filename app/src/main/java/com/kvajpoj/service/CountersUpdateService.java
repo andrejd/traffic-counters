@@ -13,23 +13,31 @@ import com.kvajpoj.dao.CountersDAO;
 import com.kvajpoj.dao.PreferencesDAO;
 import com.kvajpoj.events.BusEvent;
 
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+
 import java.io.File;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 
-import de.greenrobot.event.EventBus;
-import de.greenrobot.event.Subscribe;
+import static java.lang.Math.abs;
+
 
 /**
  * Created by Andrej on 26.9.2015.
  */
+
+// Counters update service is triggered sending intent to it; intent starts service which does its
+// job and terminates itself
+
 public class CountersUpdateService extends IntentService {
 
-    public static final String UPDATE_EXTRA = "UPDATE_EXTRA";
+    //public static final String UPDATE_EXTRA = "UPDATE_EXTRA";
     public static final String ONLY_WIFI_EXTRA = "ONLY_WIFI_EXTRA";
-    public static final String UPDATE_RETRIES = "com.kvajpoj.UPDATE_RETRIES";
+    //public static final String UPDATE_RETRIES = "com.kvajpoj.UPDATE_RETRIES";
     private Intent mIntent;
     private static int retries = 0;
-
+    SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
     
 
     public CountersUpdateService() {
@@ -38,20 +46,12 @@ public class CountersUpdateService extends IntentService {
 
     @Override
     protected void onHandleIntent(Intent intent) {
-
-        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
-        String currentTIme = sdf.format(new java.util.Date());
-
-        //Log.i("CountersUpdateService", "CountersUpdateService started at " + currentTIme);
         mIntent = intent;
-
-
         boolean onlyOnWiFi = false;
 
         if(mIntent.getBooleanExtra("manual", false) == false) {
             onlyOnWiFi = PreferencesDAO.getInstance(this).isRefreshOnlyOnWifi();
         }
-
 
         if(EventBus.getDefault().isRegistered(this)) EventBus.getDefault().unregister(this);
         EventBus.getDefault().register(this);
@@ -66,14 +66,28 @@ public class CountersUpdateService extends IntentService {
 
         boolean manual = false;
 
-        if(mIntent.getBooleanExtra("manual", false) == true) {
+        if(mIntent.getBooleanExtra("manual", false)) {
             manual = true;
         }
 
         switch (event.getEventType()) {
             case CountersDAO.EVENT_DATA_LOAD:
-                Log.i("CountersUpdateService", "Counter data has been loaded at "+ currentTIme);
+                String passedData = event.getInfo();
+                String validDataStr = passedData.split("-")[0];
+                String expiresDataStr = passedData.split("-")[1];
+                int expiresTime = Integer.parseInt(expiresDataStr);
+                int validTime = Integer.parseInt(validDataStr);
+                int currentTime = (int) (System.currentTimeMillis() / 1000L);
+                Log.i("CountersUpdateService", "Counter data has been loaded at @"
+                        + sdf.format(new Date(currentTime*1000L))
+                        + ": " + sdf.format(new Date(validTime*1000L))
+                        + " - data expires " + sdf.format(new Date(expiresTime*1000L)));
                 retries = 0;
+                if(!manual) {
+
+                    PreferencesDAO.getInstance(this).cancelCountersUpdateAlarm();
+                    PreferencesDAO.getInstance(this).startCountersUpdateAlarm((expiresTime - currentTime) + 120);
+                }
                 break;
 
             case CountersDAO.EVENT_DATA_LOAD_ERROR:
@@ -83,9 +97,22 @@ public class CountersUpdateService extends IntentService {
                 break;
 
             case CountersDAO.EVENT_DATA_UP_TO_DATE:
-                Log.i("CountersUpdateService", "Counter data is up to date " + currentTIme);
-                if(!manual && retries < 2) PreferencesDAO.getInstance(this).retriggerCountersUpdateAlarm(20);
-                retries++;
+                passedData = event.getInfo();
+                validDataStr = passedData.split("-")[0];
+                expiresDataStr = passedData.split("-")[1];
+                expiresTime = Integer.parseInt(expiresDataStr);
+                validTime = Integer.parseInt(validDataStr);
+                currentTime = (int) (System.currentTimeMillis() / 1000L);
+                Log.i("CountersUpdateService", "Counter data is up to date @"
+                        + sdf.format(new Date(currentTime*1000L))
+                        + ": " + sdf.format(new Date(validTime*1000L))
+                        + " - data expires " + sdf.format(new Date(expiresTime*1000L)));
+                retries = 0;
+                if(!manual) {
+                    if(currentTime >= expiresTime) expiresTime = currentTime;
+                    PreferencesDAO.getInstance(this).cancelCountersUpdateAlarm();
+                    PreferencesDAO.getInstance(this).startCountersUpdateAlarm((expiresTime - currentTime) + 120);
+                }
                 break;
 
             case CountersDAO.NO_INTERNET_CONNECTION:
@@ -101,11 +128,7 @@ public class CountersUpdateService extends IntentService {
         if(mIntent.getAction() != Intent.ACTION_SYNC) {
             AlarmReceiver.completeWakefulIntent(mIntent);
         }
-
     }
-
-
-
 
     public static class AlarmReceiver extends WakefulBroadcastReceiver {
 
@@ -114,16 +137,13 @@ public class CountersUpdateService extends IntentService {
             Intent sendIntent = new Intent(context, CountersUpdateService.class);
             startWakefulService(context, sendIntent);
         }
-
     }
 
     public static class BootReceiver extends BroadcastReceiver {
-
         @Override
         public void onReceive(Context context, Intent intent) {
             PreferencesDAO.getInstance(context);
         }
-
     }
 }
 

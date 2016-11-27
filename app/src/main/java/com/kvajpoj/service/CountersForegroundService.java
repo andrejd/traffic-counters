@@ -23,10 +23,15 @@ import com.kvajpoj.R;
 import com.kvajpoj.activities.MainActivity;
 import com.kvajpoj.dao.PreferencesDAO;
 
+// service runs in the foreground and listens for system events, screen on, screen off so it can
+// break doze mode by setting alarm clock every 10 minus after screen off, .....
+// it also runs so user knows that app is running in the background and collecting data
+// if an app has foreground service, it wont be kicked out of memory
+// TODO: write additional service tasks
+
 public class CountersForegroundService extends Service {
 
     private static final String LOG_TAG = "CountersMService";
-    private static final int period = 1000 * 60 * 5; // repeat check every 5 min.
     public static boolean IS_SERVICE_RUNNING = false;
     private IntentMessageReceiver mIntentMessageReceiver;
 
@@ -42,10 +47,10 @@ public class CountersForegroundService extends Service {
         try {
 
             if(intent == null) {
-
-            } else if (intent.getAction().equals(ServiceConstants.ACTION.START_FOREGROUND_ACTION)) {
-
-                Log.i(LOG_TAG, "Received Start Foreground Intent with delay " + intent.getIntExtra("Delay", 0));
+                //do nothing
+            }
+            else if (intent.getAction().equals(ServiceConstants.ACTION.START_FOREGROUND_ACTION)) {
+                //Log.i(LOG_TAG, "Received Start Foreground Intent with delay " + intent.getIntExtra("Delay", 0));
 
                 if (mIntentMessageReceiver != null) {
                     unregisterReceiver(mIntentMessageReceiver);
@@ -65,35 +70,30 @@ public class CountersForegroundService extends Service {
 
                 Log.i(LOG_TAG, "Service has started!");
 
-            } else if (intent.getAction().equals(ServiceConstants.ACTION.SILENT_ACTION)) {
+            }
+            else if (intent.getAction().equals(ServiceConstants.ACTION.SILENT_ACTION)) {
 
                 PreferencesDAO.getInstance(this).setNotifications(false);
                 showNotification(PreferencesDAO.getInstance(this).isNotifications(), false);
-
-            } else if (intent.getAction().equals(ServiceConstants.ACTION.LOUD_ACTION)) {
+            }
+            else if (intent.getAction().equals(ServiceConstants.ACTION.LOUD_ACTION)) {
 
                 PreferencesDAO.getInstance(this).setNotifications(true);
                 showNotification(PreferencesDAO.getInstance(this).isNotifications(), false);
-
-            } else if (intent.getAction().equals(ServiceConstants.ACTION.STOP_FOREGROUND_ACTION)) {
+            }
+            else if (intent.getAction().equals(ServiceConstants.ACTION.STOP_FOREGROUND_ACTION)) {
 
                 Log.i(LOG_TAG, "Received Stop Foreground Intent");
                 stopForeground(true);
                 stopSelf();
-
             }
-
-        } catch (Exception ex) {
-            Log.e(LOG_TAG, ex.toString());
-
-        } finally {
-            return START_STICKY;
-
-            //return START_NOT_STICKY;
-
         }
-
-
+        catch (Exception ex) {
+            Log.e(LOG_TAG, ex.toString());
+        }
+        finally {
+            return START_STICKY;
+        }
     }
 
     private int getIntentIcon(boolean loud) {
@@ -137,7 +137,7 @@ public class CountersForegroundService extends Service {
 
         NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this);
 
-        notificationBuilder.setContentTitle("Števci prometa")
+        notificationBuilder.setContentTitle(getString(R.string.title_counters))
                 .setTicker("Aplikacija se izvaja v ozadju")
                 .setContentText("Aplikacija se izvaja v ozadju")
                 .setSmallIcon(R.drawable.ic_notification_run)

@@ -11,6 +11,7 @@ import android.support.v4.app.NotificationManagerCompat;
 import android.support.v7.app.NotificationCompat;
 import android.util.Log;
 
+import com.google.gson.internal.LinkedTreeMap;
 import com.kvajpoj.R;
 import com.kvajpoj.activities.CounterDetailActivity;
 import com.kvajpoj.activities.MainActivity;
@@ -22,15 +23,18 @@ import com.kvajpoj.services.TrafficFeedService;
 import com.kvajpoj.utils.ConnectivityHelper;
 import com.kvajpoj.utils.ServiceGenerator;
 
+import org.greenrobot.eventbus.EventBus;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
+import java.util.Locale;
 
-import de.greenrobot.event.EventBus;
 import io.realm.Case;
 import io.realm.Realm;
 import io.realm.RealmResults;
@@ -65,12 +69,13 @@ public final class CountersDAO {
     }
 
 
-    public void CleanDatabase(Context context) {
+    /*public void CleanDatabase(Context context) {
 
         try {
             realm = Realm.getDefaultInstance();
             realm.beginTransaction();
-            realm.clear(Counter.class);
+
+            realm.delete(Counter.class);
             realm.commitTransaction();
             realm.close();
         }
@@ -82,7 +87,7 @@ public final class CountersDAO {
             realm.close();
         }
 
-    }
+    }*/
 
 
     public RealmResults<Counter> findFavorites(Context context) {
@@ -104,16 +109,31 @@ public final class CountersDAO {
         return tmp;
     }
 
-    public int getUpdateTime() {
+    public int getDataExpiresTime() {
+        Counter tmp = null;
+        try {
+            Realm realm = Realm.getDefaultInstance();
+            tmp = realm.where(Counter.class).findFirst();
+        }
+        catch (Exception exception) {
+            Log.e("Counters", exception.getMessage());
+        }
+        finally {
+            realm.close();
+        }
+
+        if(tmp != null) return tmp.getExpires();
+        return 0;
+    }
+
+    /*public int getUpdateTime() {
 
         Counter tmp = null;
         try {
             Realm realm = Realm.getDefaultInstance();
             tmp = realm.where(Counter.class).findFirst();
-
         }
-        catch (Exception exception)
-        {
+        catch (Exception exception) {
             Log.e("Counters", exception.getMessage());
         }
         finally {
@@ -122,48 +142,19 @@ public final class CountersDAO {
 
         if(tmp != null) return tmp.getUpdated();
         return 0;
-    }
+    }*/
 
     public RealmResults<Counter> findFavorites(Realm realm)
     {
-
         RealmResults<Counter> tmp = null;
         try {
             tmp = realm.where(Counter.class).equalTo("Favorite", true).findAllSorted("Position", Sort.DESCENDING);
             return tmp;
         }
-        catch (Exception exception)
-        {
+        catch (Exception exception) {
             Log.e("Counters", exception.getMessage());
         }
-        finally {
-            //realm.close();
-        }
 
-        return tmp;
-    }
-
-
-    public void CloseRealm()
-    {
-
-    }
-
-    public Counter findCounterByID(Context context, String id)
-    {
-        Counter tmp = null;
-
-        try {
-            realm = Realm.getDefaultInstance();
-            tmp = realm.where(Counter.class).equalTo("Id",id).findFirst();
-        }
-        catch(Exception exception)
-        {
-            Log.e("Counters", exception.getMessage());
-        }
-        finally {
-            //realm.close();
-        }
         return tmp;
     }
 
@@ -171,79 +162,41 @@ public final class CountersDAO {
         RealmResults<Counter> tmp = null;
         try {
             realm = Realm.getDefaultInstance();
-            if (query.matches(""))
-            {
+            if (query.matches("")) {
                 tmp = realm.where(Counter.class).findAll();
-            } else
-            {
+            }
+            else {
                 tmp = realm.where(Counter.class)
                         .contains("Location", query, Case.INSENSITIVE)
                         .or()
                         .contains("Direction", query, Case.INSENSITIVE)
                         .findAll();
             }
-
-            //tmp.sort(new String[]{"Status", "Location"}, new boolean[]{false, true});
-            tmp.sort(new String[]{"Status", "Location"}, new Sort[]{Sort.DESCENDING, Sort.ASCENDING});
-            //realm.close();
-            return tmp;
+            return tmp.sort(new String[]{"Status", "Location"}, new Sort[]{Sort.DESCENDING, Sort.ASCENDING});
         }
-        catch(Exception exception)
-        {
+        catch(Exception exception) {
             Log.e("Counters", exception.getMessage());
         }
-        finally {
-
-            //realm.close();
-        }
-
         return tmp;
-
-
-    }
-
-
-    public boolean createOrUpdateCounters(Context context, List<Counter> counters) {
-
-        try
-        {
-            realm = Realm.getDefaultInstance();
-            realm.beginTransaction();
-            for (Counter tc : counters) {
-                realm.copyToRealmOrUpdate(tc);
-            }
-            realm.commitTransaction();
-            realm.close();
-            return true;
-        }
-        catch(Exception ex)
-        {
-            Log.e("Counters", ex.getMessage());
-        }
-        finally {
-            realm.close();
-        }
-
-        return true;
-
     }
 
     public void refreshCounters(Context context, boolean wifi, boolean mobile) {
+
         if (wifi && ConnectivityHelper.isConnectedWifi(context)) {
             refreshCounters(context, false);
-        } else if (mobile && ConnectivityHelper.isConnectedMobile(context)) {
+        }
+        else if (mobile && ConnectivityHelper.isConnectedMobile(context)) {
             refreshCounters(context, false);
-        } else if ((wifi || mobile) && !ConnectivityHelper.isConnected(context)) {
+        }
+        else if ((wifi || mobile) && !ConnectivityHelper.isConnected(context)) {
             refreshCounters(context, true);
-            //EventBus.getDefault().post(new BusEvent(NO_INTERNET_CONNECTION, ""));
         }
     }
 
     public void refreshCounters(final Context context, final Boolean noConnection) {
 
         // if we have internet connection, we go to server and pull new data...
-        if(noConnection == false )
-        {
+        if( noConnection == false ) {
             TrafficFeedService tcs = ServiceGenerator.createService(
                     TrafficFeedService.class,
                     TrafficFeedService.BASE_URL
@@ -261,8 +214,7 @@ public final class CountersDAO {
                 }
             });
         }
-        else // there is no internet connection, so we just clean up
-        {
+        else { // there is no internet connection, so we just clean up
             new ProcessCounterData(null, null, noConnection, context).execute();
         }
 
@@ -289,15 +241,14 @@ public final class CountersDAO {
             int updated;
             Realm privateRealm = null;
 
-            if(noConnection == true)
-            {
+            if(noConnection) {
                 try {
                     Log.i("Counters", "Removing stale object despite lacking internet connection!");
                     removeStaleEvents((int) (new Date().getTime() / 1000));
 
                 }
                 catch (Exception ex) {
-                    Log.e("Counters", "Exceprion during data cleaning: " + ex.getMessage());
+                    Log.e("Counters", "Exception during data cleaning: " + ex.getMessage());
                 }
                 finally {
                     return new BusEvent(NO_INTERNET_CONNECTION, "");
@@ -305,12 +256,12 @@ public final class CountersDAO {
             }
 
             try {
-
                 if (trafficFeed == null) {
+
                     String msg = "Napaka pri obdelavi prejetih podatkov!";
 
                     //Try to get response body
-                    BufferedReader reader = null;
+                    BufferedReader reader;
                     StringBuilder sb = new StringBuilder();
                     try {
                         reader = new BufferedReader(new InputStreamReader(response.getBody().in()));
@@ -320,22 +271,20 @@ public final class CountersDAO {
                             while ((line = reader.readLine()) != null) {
                                 sb.append(line);
                             }
-                        } catch (IOException e) {
+                        }
+                        catch (IOException e) {
                             e.printStackTrace();
                         }
-                    } catch (IOException e) {
+                    }
+                    catch (IOException e) {
                         e.printStackTrace();
                     }
 
                     if (sb.toString().equals("null")) {
                         msg = "Napaka na strežniku! Poiskusite ponovno!";
                     }
-
                     return new BusEvent(EVENT_DATA_LOAD_ERROR, msg);
-                }
-
-                updated = trafficFeed.getFeed().getUpdated();
-                Log.i("Counters", "Data was updated at " + updated);
+                }//end of traffic feed == null
 
                 SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
 
@@ -343,22 +292,30 @@ public final class CountersDAO {
                 Log.i("Counters", "Current time " + gc.getTime().toString()
                         + " Timezone offset " + gc.getTimeZone().getRawOffset());
 
-                int updatedTime = trafficFeed.getFeed().getUpdated();
+                String updatedTimeStr = trafficFeed.getContents().get(0).getModifiedTime();
+                String expiresTimeStr = trafficFeed.getContents().get(0).getExpires();
+                //2016-11-19T19:52:04.0511684Z
+                DateFormat df1 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSSSSS'Z'");
+                Date result1 = df1.parse(updatedTimeStr);
+                Date dataExpiresTime = df1.parse(expiresTimeStr);
+
+                int expiresTime = (int) (dataExpiresTime.getTime()/1000L);
+                expiresTime += (int)(gc.getTimeZone().getRawOffset()/1000L);
+
+                int updatedTime = (int) (result1.getTime()/1000L);
                 updatedTime += (int)(gc.getTimeZone().getRawOffset()/1000L);
 
-
+                updated = updatedTime;
 
                 privateRealm = Realm.getDefaultInstance();
                 privateRealm.beginTransaction();
-
 
                 int notifications           = 0;
                 String notificationHeader   = "";
                 String notificationText     = "";
                 String notifictionIds       = "";
 
-                for (TrafficFeed.Feed.TrafficCounter tc : trafficFeed.getFeed().getCounters()) {
-
+                for (TrafficFeed.TrafficCounter tc : trafficFeed.getCounters()) {
 
                     Counter c = privateRealm.where(Counter.class).equalTo("Id", tc.getId()).findFirst();
                     if (c == null) {
@@ -366,14 +323,14 @@ public final class CountersDAO {
                         c.setId(tc.getId());
                     }
 
-                    if (c.getUpdated() != updatedTime) {
+                    if (c.getUpdated() != updated) {
 
-                        c.setUpdated(updatedTime);
+                        c.setUpdated(updated);
+                        c.setExpires(expiresTime);
 
                         // update counter data
                         c.setRegion(tc.getStevci_regija());
 
-                        //Log.i("PARSE", tc.getStevci_pasOpis());
                         if (tc.getStevci_pasOpis() != null && !tc.getStevci_pasOpis().equals(""))
                             c.setLane(tc.getStevci_pasOpis());
 
@@ -389,19 +346,14 @@ public final class CountersDAO {
 
                         if (c.getStatus() == 6) c.setStatus(0);
 
-
                         // create event object
-
                         CounterEvent e = privateRealm.createObject(CounterEvent.class);
 
+                        e.setUpdated(updated);
 
-                        // here we add 10 minutes, so time is shown as current; time in raw data is 10 min behind
-                        // or events are 10 minutes old
-                        e.setUpdated(tc.getUpdated() + (int)(gc.getTimeZone().getRawOffset()/1000L) + (60*10));
                         if(gc.getTimeZone().inDaylightTime(new Date())) {
                             e.setUpdated(e.getUpdated() + 60*60);
                         }
-
 
                         e.setTime(sdf.format(new Date(e.getUpdated()*1000L)));
                         e.setBusyIndex(tc.getStevci_occ());
@@ -422,38 +374,23 @@ public final class CountersDAO {
                         // notifications
 
                         // TODO: Check if notifications are turned on
-                        CounterEvent prev = c.getEvents().last();
+                        //CounterEvent prev = c.getEvents().last();
+                        CounterEvent prev = null;
+                        if(c.getEvents().size() > 0) {
+                            prev = c.getEvents().last();
+                        }
 
                         int statusTreshold = 5;
 
-
-                        // we clear notification time if status is below treshold for two reads
-                        if(prev != null && c.getFavorite() == true && e.getStatus() < statusTreshold && prev.getStatus() < statusTreshold)
-                        {
-                            //Log.i("CountersUpdateService", "Clearing notification time as previous and this event are below threshold" + c.getLocation() + ", " + c.getDirection());
+                        // we clear notification time if status is below threshold for two reads
+                        if(prev != null && c.getFavorite() == true && e.getStatus() < statusTreshold && prev.getStatus() < statusTreshold) {
                             c.setNotification(0);
                         }
 
-                        // if notification was issued 31 minutes ago, it is time for new one if applicable
-                        //if(c.getFavorite() == true && c.getNotification() < (currentTime - (31*60)))
-                        //{
-                        //    Log.i("CountersUpdateService", "Clearing notification time 31 minutes after last notification, so new one can trigger! " + c.getLocation() + ", " + c.getDirection());
-                        //    c.setNotification(0);
-                        //}
-
-
-
-
-                        if(prev != null &&
-                                (e.getUpdated() - prev.getUpdated() < 360) &&
+                        if(prev != null && (e.getUpdated() - prev.getUpdated() < 11*60) &&
                                 prev.getStatus() >= statusTreshold && e.getStatus() >= statusTreshold &&
-                                c.getFavorite() == true &&
-                                c.getNotification() == 0)
+                                c.getFavorite() == true && c.getNotification() == 0)
                         {
-
-                            //Log.i("Counters", "Notification" + c.getLocation() + ", " + c.getDirection()  + " Prev " + prev.getStatus() + " Current " + e.getStatus());
-
-
                             notifictionIds += c.getId() + " ";
                             notifications++;
                             notificationHeader += c.getLocation() + ", " + c.getDirection() + " " + c.getLane()  + "; ";
@@ -464,46 +401,33 @@ public final class CountersDAO {
                         // add event to Counter
                         c.getEvents().add(e);
 
-                        while(c.getEvents().size() > 288) // 12 events/per hour * 24 hours
-                        {
-                            c.getEvents().first().removeFromRealm();
+                        while(c.getEvents().size() > 144) { // 6 events/per hour * 24 hours
+                            c.getEvents().first().deleteFromRealm();
                         }
 
                         changes = true;
                         privateRealm.copyToRealmOrUpdate(c);
                     }
-
                 } //end of looping trough objects ...
-
 
                 ////////////////////////////////////////////////////////////////////////////////////
                 // notifications
-
-                // notification
-
-                if(notifications > 0 && PreferencesDAO.getInstance(mContext).isNotifications())
-                {
-                    NotificationManagerCompat nm = (NotificationManagerCompat) NotificationManagerCompat.from(mContext);//.getSystemService(Context.NOTIFICATION_SERVICE);
-                    //nm.cancelAll();
+                if(notifications > 0 && PreferencesDAO.getInstance(mContext).isNotifications()) {
+                    NotificationManagerCompat nm = NotificationManagerCompat.from(mContext);
 
                     // Prepare intent which is triggered if the
                     // notification is selected
                     Intent intent;
 
-                    if(notifications == 1)
-                    {
+                    if(notifications == 1) {
                         intent = new Intent(mContext, CounterDetailActivity.class);
                         intent.putExtra("COUNTER_ID",notifictionIds.trim());
                     }
-                    else
-                    {
+                    else {
                         intent = new Intent(mContext, MainActivity.class);
                     }
 
                     PendingIntent pIntent = PendingIntent.getActivity(mContext, (int) System.currentTimeMillis(), intent, 0);
-
-
-
 
                     // Build notification
                     // Actions are just fake
@@ -522,61 +446,36 @@ public final class CountersDAO {
                     noti.defaults |= Notification.DEFAULT_SOUND;
                     noti.defaults |= Notification.DEFAULT_VIBRATE;
                     noti.defaults |= Notification.DEFAULT_LIGHTS;
-
                     noti.flags |= Notification.FLAG_AUTO_CANCEL;
 
                     // calculate id
-
                     Log.i("Counters", "Showing notification: " + notificationHeader + ": " + notificationText);
 
                     if(notifications > 1) {
                         nm.notify(200, noti);
                     }
-                    else
-                    {
+                    else {
                         // get id from
                         int id = Integer.parseInt(notifictionIds.trim().replace("-",""));
                         nm.notify(id, noti);
                     }
-
-
                 }
-
-
-
-
-
-
-
-
-
                 ////////////////////////////////////////////////////////////////////////////////////
-
-
-
-
-
-
                 if (changes) {
-
                     privateRealm.commitTransaction();
                     privateRealm.close();
                     removeStaleEvents(updated);
-                    return new BusEvent(EVENT_DATA_LOAD, "OK");
+                    return new BusEvent(EVENT_DATA_LOAD, "" + updated + "-" + expiresTime );
                 }
                 else {
-
                     privateRealm.cancelTransaction();
                     privateRealm.close();
                     removeStaleEvents(updated);
-                    return new BusEvent(EVENT_DATA_UP_TO_DATE, "OK");
+                    return new BusEvent(EVENT_DATA_UP_TO_DATE, "" + updated + "-" + expiresTime );
                 }
-
-
-
             }
-            catch (Exception exception)
-            {
+            catch (Exception exception) {
+
                 Log.e("Counters", "Exceprion during data handling: " + exception.getMessage());
                 if(privateRealm != null) {
                     privateRealm.cancelTransaction();
@@ -589,43 +488,8 @@ public final class CountersDAO {
         private void removeStaleEvents(int updated)
         {
             Realm myRealm = Realm.getDefaultInstance();
-            //RealmResults<CounterEvent> q = myRealm.where(CounterEvent.class).lessThan("Updated", updated -(60*60*24)).findAll();
             RealmResults<CounterEvent> q = myRealm.where(CounterEvent.class).findAll();
             Log.i("Counters", "There are total events " + q.size());
-            /*if(q.size() > 0)
-            {
-                myRealm.beginTransaction();
-                try{
-                    int i = 0;
-
-                    while(q.size() > 0)
-                    {
-                        q.get(0).removeFromRealm();
-                        i++;
-                        if(i == 1000) break;
-                    }
-
-                    Log.i("Counters", "Removed stale events " + i);
-                    myRealm.commitTransaction();
-
-                } catch (Exception ex){
-                    myRealm.cancelTransaction();
-                    Log.e("Counters", ex.toString());
-                }
-                finally {
-                    myRealm.close();
-                }
-
-
-                if(Realm.getDefaultInstance().isClosed()) {
-                    Realm.compactRealm(Realm.getDefaultInstance().getConfiguration());
-                    Log.i("Counters", "Finished deleting objects and compacting Realm file ");
-                }
-                else
-                {
-                    Log.i("Counters", "Finished deleting objects");
-                }
-            }*/
         }
 
         private int getNotificationIcon() {

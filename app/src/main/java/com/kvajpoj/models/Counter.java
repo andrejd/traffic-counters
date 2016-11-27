@@ -18,12 +18,17 @@ public class Counter extends RealmObject {
     private String Direction = "";
     private String Lane = "";
     private int Updated = 0;
+    private int Expires = 0;
     private String Title = "";
     private int Status;
     private boolean Favorite = false;
     private int Position = 0;
     private int Notification = 0;
     private RealmList<CounterEvent> Events = new RealmList<>();
+
+
+    public int getExpires() { return Expires; }
+    public void setExpires(int expires) { Expires = expires; }
 
     public int getNotification() {
         return Notification;

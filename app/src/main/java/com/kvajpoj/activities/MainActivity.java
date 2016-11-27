@@ -32,10 +32,11 @@ import com.kvajpoj.fragments.FragmentCounters;
 import com.kvajpoj.service.CountersUpdateService;
 import com.kvajpoj.utils.SearchHelper;
 
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+
 import butterknife.Bind;
 import butterknife.ButterKnife;
-import de.greenrobot.event.EventBus;
-import de.greenrobot.event.Subscribe;
 
 
 public class MainActivity extends AppCompatActivity implements
@@ -96,7 +97,6 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     private void setupToolbar() {
-
         setSupportActionBar(mToolbar);
     }
 
@@ -127,14 +127,11 @@ public class MainActivity extends AppCompatActivity implements
         });
 
         if (CountersDAO.getInstance().findFavorites(this).size() == 0) {
-
             mPager.setCurrentItem(ViewPagerAdapter.TAB_LIST);
             manageSearchIcon(true); // hide search
-
-        } else {
-
+        }
+        else {
             manageSearchIcon(false); // hide search
-
         }
     }
 
@@ -302,32 +299,25 @@ public class MainActivity extends AppCompatActivity implements
         EventBus.getDefault().register(this);
         mAppBarLayout.addOnOffsetChangedListener(this);
 
-        // here we call getInstance to initialize PrefrencesDao, if needed
+        // here we call getInstance to initialize PreferencesDao, if needed;
+        // this will effectively start background update service
         PreferencesDAO.getInstance(this);
-
-
-
     }
 
     @Override
     protected void onPostResume() {
         super.onPostResume();
 
-        int updateTime = CountersDAO.getInstance().getUpdateTime();
+        int expiresTime = CountersDAO.getInstance().getDataExpiresTime();
         int currentTime = (int) (System.currentTimeMillis() / 1000L);
 
-        if (updateTime == 0 || (currentTime - updateTime) > 60 * 15) // 10 minutes because of stale data on server + 5 minutes refresh rate
-        {
-        //    Log.i("Counters", "Updating counters! " + (currentTime - updateTime) + " " + updateTime + " " + currentTime);
-
-            Log.i("Counters", "Refreshing");
+        if (expiresTime == 0 || (currentTime > expiresTime)) { // data on server changes every 10 minutes
+            Log.i("Counters", "Refreshing counters as data has expired!");
             CountersDAO.getInstance().refreshCounters(MainActivity.this, true, true);
-
-        } else {
-            Log.i("Counters", "Counters already updated! " + updateTime + " " + currentTime);
         }
-
-
+        else {
+            Log.i("Counters", "Counters data still valid! " + expiresTime + " < " + currentTime);
+        }
     }
 
     @Override
