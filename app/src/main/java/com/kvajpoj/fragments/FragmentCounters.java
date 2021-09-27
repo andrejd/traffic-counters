@@ -1,6 +1,7 @@
 package com.kvajpoj.fragments;
 
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
@@ -34,9 +35,8 @@ public class FragmentCounters extends Fragment implements OnStartDragListener {
     public static final String SCROLL_DOWN = "ScrollDown";
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
-    @Bind(R.id.swipeContainer)
+
     public SwipeRefreshLayout mSwipeContainer;
-    @Bind(R.id.counters_rec_view)
     RecyclerView mCountersRecView;
     private ItemTouchHelper mItemTouchHelper;
     private String mParam1;
@@ -59,11 +59,15 @@ public class FragmentCounters extends Fragment implements OnStartDragListener {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
+
+
+
     }
 
     public void StopRefreshing() {
-        if(mSwipeContainer != null) mSwipeContainer.setRefreshing(false);
+        if(null != mSwipeContainer) mSwipeContainer.setRefreshing(false);
     }
 
     public void StartRefreshing() {
@@ -83,18 +87,16 @@ public class FragmentCounters extends Fragment implements OnStartDragListener {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
         View view = inflater.inflate(R.layout.fragment_counters, container, false);
-        ButterKnife.bind(this, view);
 
-        mSwipeContainer.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-                EventBus.getDefault().post(new BusEvent(FragmentCounters.this, REFRESH, ""));
-            }
-        });
+        mSwipeContainer = view.findViewById(R.id.swipeContainer);
+        mCountersRecView = view.findViewById(R.id.counters_rec_view);
+
+
+        mSwipeContainer.setOnRefreshListener(() -> EventBus.getDefault().post(new BusEvent(FragmentCounters.this, REFRESH, "")));
 
         mCountersRecView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
-            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
                 super.onScrolled(recyclerView, dx, dy);
                 if (Math.abs(dy) > mScrollOffset) {
                     if (dy > 0) {

@@ -49,7 +49,7 @@ public class CountersUpdateService extends IntentService {
         mIntent = intent;
         boolean onlyOnWiFi = false;
 
-        if(mIntent.getBooleanExtra("manual", false) == false) {
+        if(!mIntent.getBooleanExtra("manual", false)) {
             onlyOnWiFi = PreferencesDAO.getInstance(this).isRefreshOnlyOnWifi();
         }
 

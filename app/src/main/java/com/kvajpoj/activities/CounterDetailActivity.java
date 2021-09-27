@@ -68,43 +68,26 @@ public class CounterDetailActivity extends AppCompatActivity implements
 
     private static final String LOG = "CounterDetailActivity";
 
-    @Bind(R.id.chart1)
     CombinedChart mChart;
-    @Bind(R.id.toolbar)
     Toolbar mToolbar;
-    @Bind(R.id.lblCounterName)
     TextView mCounterName;
-    @Bind(R.id.lblCounterTime)
     TextView mCounterTime;
-    @Bind(R.id.lblCounterCars)
     TextView mCounterCars;
-    @Bind(R.id.lblCounterSpeed)
     TextView mCounterSpeed;
-    @Bind(R.id.lblCounterStatus)
     TextView mCounterStatus;
-    @Bind(R.id.lblCounterTimeout)
     TextView mCounterTimeout;
 
-    @Bind(R.id.lblCounterDetail1)
     TextView mCounterDetail;
 
-    @Bind(R.id.fabOption1)
     FloatingActionButton mFabOption1;
-    @Bind(R.id.fabOption2)
     FloatingActionButton mFabOption2;
-    @Bind(R.id.fab_menu)
     FloatingActionMenu mFabMenu;
 
-    @Bind(R.id.btnCousin1)
     Button mBtnCousin1;
-    @Bind(R.id.btnCousin2)
     Button mBtnCousin2;
-    @Bind(R.id.btnCousin3)
     Button mBtnCousin3;
-    @Bind(R.id.btnCousin4)
     Button mBtnCousin4;
 
-    @Bind(R.id.avLoadingIndicatorView)
     AVLoadingIndicatorView mLoadingIndicatorView;
 
     SimpleDateFormat mSDF = new SimpleDateFormat("HH:mm");
@@ -132,7 +115,29 @@ public class CounterDetailActivity extends AppCompatActivity implements
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.counter_details_activity);
-        ButterKnife.bind(this);
+
+        mChart = findViewById(R.id.chart1);
+
+        mToolbar = findViewById(R.id.toolbar);
+        mCounterName = findViewById(R.id.lblCounterName);
+
+        mCounterTime = findViewById(R.id.lblCounterTime);
+        mCounterCars = findViewById(R.id.lblCounterCars);
+        mCounterSpeed = findViewById(R.id.lblCounterSpeed);
+        mCounterStatus = findViewById(R.id.lblCounterStatus);
+        mCounterTimeout = findViewById(R.id.lblCounterTimeout);
+        mCounterDetail = findViewById(R.id.lblCounterDetail1);
+
+        mFabOption1 = findViewById(R.id.fabOption1);
+        mFabOption2 = findViewById(R.id.fabOption2);
+        mFabMenu = findViewById(R.id.fab_menu);
+
+        mBtnCousin1 = findViewById(R.id.btnCousin1);
+        mBtnCousin2 = findViewById(R.id.btnCousin2);
+        mBtnCousin3 = findViewById(R.id.btnCousin3);
+        mBtnCousin4 = findViewById(R.id.btnCousin4);
+        mLoadingIndicatorView = findViewById(R.id.avLoadingIndicatorView);
+
         initToolbar();
         EventBus.getDefault().register(this);
 
@@ -191,12 +196,12 @@ public class CounterDetailActivity extends AppCompatActivity implements
                     if (tmp.getLane().equals("(v)")) lane = "(vozni pas)";
                     if (tmp.getLane().equals("(p)")) lane = "(prehitevalni pas)";
 
-                    if (mButtonsAreSet == false) {
+                    if (!mButtonsAreSet) {
 
                         // get cousins
                         RealmResults<Counter> cousins = realm.where(Counter.class)
                                 .equalTo("Location", tmp.getLocation())
-                                .findAllSorted("Id", Sort.ASCENDING);
+                                .findAll().sort("Id", Sort.ASCENDING);
 
                         for (int i = 0; i < cousins.size(); i++) {
                             final Counter c = cousins.get(i);
@@ -636,8 +641,12 @@ public class CounterDetailActivity extends AppCompatActivity implements
         stopLoader();
     }
 
+    public void onOptionClick(View view) {
+        FloatingActionButton button = (FloatingActionButton) view;
+        onOptionClick(button);
+    }
 
-    @OnClick({R.id.fabOption1, R.id.fabOption2})
+    // click handler
     public void onOptionClick(FloatingActionButton button) {
         mFabMenu.close(true);
 
@@ -810,9 +819,9 @@ public class CounterDetailActivity extends AppCompatActivity implements
 
 
                 switch (ge.getStatus()) {
-                    case -1: //no data
-                        colors[i] = R.color.colorLevel6;
-                        break;
+                    //case -1: //no data
+                    //    colors[i] = R.color.colorLevel6;
+                    //    break;
                     case 0:
                         colors[i] = R.color.colorLevel0;
                         break;
@@ -837,9 +846,9 @@ public class CounterDetailActivity extends AppCompatActivity implements
                         colors[i] = R.color.colorLevel5;
                         break;
 
-                    case 6:
-                        colors[i] = R.color.colorLevel6;
-                        break;
+                    //case 6:
+                    //    colors[i] = R.color.colorLevel6;
+                    //    break;
 
                     default:
                         colors[i] = R.color.colorLevel6;
@@ -924,6 +933,8 @@ public class CounterDetailActivity extends AppCompatActivity implements
     public void onNothingSelected() {
 
     }
+
+
 
     private class GraphEvent {
 

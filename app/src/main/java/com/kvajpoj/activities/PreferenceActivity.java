@@ -22,7 +22,6 @@ import butterknife.ButterKnife;
 
 public class PreferenceActivity extends AppCompatActivity  {
 
-    @Bind(R.id.toolbar)
     Toolbar mToolbar;
 
     private SettingsFragment mSettingsFragment;
@@ -34,8 +33,8 @@ public class PreferenceActivity extends AppCompatActivity  {
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
-        ButterKnife.bind(this);
         //mBuildTime = GetBuildTime();
+        mToolbar = findViewById(R.id.toolbar);
         initToolbar();
         initPreferences();
 
@@ -118,7 +117,7 @@ public class PreferenceActivity extends AppCompatActivity  {
         @Override
         public boolean onPreferenceChange(Preference preference, Object newValue) {
 
-            if (preference.getKey().equals("prefRefreshOnBackground") && (Boolean) newValue == true) {
+            if (preference.getKey().equals("prefRefreshOnBackground") && (Boolean) newValue) {
                 getActivity().sendStickyBroadcast(new Intent(ServiceConstants.ACTION.HIDE_ACTION));
             }
             return true;

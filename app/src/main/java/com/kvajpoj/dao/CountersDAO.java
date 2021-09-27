@@ -8,10 +8,9 @@ import android.graphics.drawable.BitmapDrawable;
 import android.media.RingtoneManager;
 import android.os.AsyncTask;
 import android.support.v4.app.NotificationManagerCompat;
-import android.support.v7.app.NotificationCompat;
+//import android.support.v7.app.NotificationCompat;
 import android.util.Log;
 
-import com.google.gson.internal.LinkedTreeMap;
 import com.kvajpoj.R;
 import com.kvajpoj.activities.CounterDetailActivity;
 import com.kvajpoj.activities.MainActivity;
@@ -94,7 +93,7 @@ public final class CountersDAO {
         RealmResults<Counter> tmp = null;
         try {
             realm = Realm.getDefaultInstance();
-            tmp = realm.where(Counter.class).equalTo("Favorite", true).findAllSorted("Position", Sort.DESCENDING);
+            tmp = realm.where(Counter.class).equalTo("Favorite", true).findAll().sort("Position", Sort.DESCENDING);
             //realm.close();
             return tmp;
         }
@@ -148,7 +147,7 @@ public final class CountersDAO {
     {
         RealmResults<Counter> tmp = null;
         try {
-            tmp = realm.where(Counter.class).equalTo("Favorite", true).findAllSorted("Position", Sort.DESCENDING);
+            tmp = realm.where(Counter.class).equalTo("Favorite", true).findAll().sort("Position", Sort.DESCENDING);
             return tmp;
         }
         catch (Exception exception) {
@@ -196,7 +195,7 @@ public final class CountersDAO {
     public void refreshCounters(final Context context, final Boolean noConnection) {
 
         // if we have internet connection, we go to server and pull new data...
-        if( noConnection == false ) {
+        if(!noConnection) {
             TrafficFeedService tcs = ServiceGenerator.createService(
                     TrafficFeedService.class,
                     TrafficFeedService.BASE_URL
@@ -367,8 +366,14 @@ public final class CountersDAO {
                         if (e.getStatus() == 0) e.setStatus(-1);
                         if (e.getStatus() == 6) e.setStatus(0);
 
-                        e.setAvgSpeed(tc.getStevci_hit());
-
+                        float as;
+                        try {
+                            as = Float.parseFloat(tc.getStevci_hit().replace(",", "."));
+                        }
+                        catch (NumberFormatException err) {
+                            as = 0;
+                        }
+                        e.setAvgSpeed((int)as);
 
                         ////////////////////////////////////////////////////////////////////////////
                         // notifications
@@ -383,13 +388,13 @@ public final class CountersDAO {
                         int statusTreshold = 5;
 
                         // we clear notification time if status is below threshold for two reads
-                        if(prev != null && c.getFavorite() == true && e.getStatus() < statusTreshold && prev.getStatus() < statusTreshold) {
+                        if(prev != null && c.getFavorite() && e.getStatus() < statusTreshold && prev.getStatus() < statusTreshold) {
                             c.setNotification(0);
                         }
 
                         if(prev != null && (e.getUpdated() - prev.getUpdated() < 11*60) &&
                                 prev.getStatus() >= statusTreshold && e.getStatus() >= statusTreshold &&
-                                c.getFavorite() == true && c.getNotification() == 0)
+                                c.getFavorite() && c.getNotification() == 0)
                         {
                             notifictionIds += c.getId() + " ";
                             notifications++;
@@ -431,12 +436,13 @@ public final class CountersDAO {
 
                     // Build notification
                     // Actions are just fake
-                    Notification noti = new NotificationCompat.Builder(mContext)
+                    String substring = notificationHeader.substring(0, notificationHeader.length() - 2);
+                    Notification noti = new Notification.Builder(mContext)
                             .setLargeIcon(((BitmapDrawable) mContext.getResources().getDrawable(getNotificationIcon())).getBitmap())
                             .setContentTitle(notificationText)
                             .setAutoCancel(true)
-                            .setContentText(notificationHeader.substring(0, notificationHeader.length() - 2))
-                            .setStyle(new NotificationCompat.BigTextStyle().bigText(notificationHeader.substring(0, notificationHeader.length() - 2)))
+                            .setContentText(substring)
+                            .setStyle(new Notification.BigTextStyle().bigText(substring))
                             .setSmallIcon(R.drawable.ic_stat_notification)
                             .setContentIntent(pIntent)
                             .setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION))

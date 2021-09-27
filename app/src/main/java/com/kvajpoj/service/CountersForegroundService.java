@@ -4,8 +4,11 @@ package com.kvajpoj.service;
  * Created by Andrej on 29.10.2015.
  */
 
+import android.annotation.SuppressLint;
 import android.app.AlarmManager;
 import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.BroadcastReceiver;
@@ -14,9 +17,12 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.os.Build;
 import android.os.IBinder;
-import android.support.v7.app.NotificationCompat;
+//import android.support.v7.app.NotificationCompat;
+import android.support.annotation.RequiresApi;
+import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
 import com.kvajpoj.R;
@@ -126,6 +132,17 @@ public class CountersForegroundService extends Service {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
+    private String createNotificationChannel(String channelId, String channelName) {
+        NotificationChannel chan = new NotificationChannel(channelId, channelName, NotificationManager.IMPORTANCE_NONE);
+        chan.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
+        //NotificationManager service = getSystemService(Context.NOTIFICATION_SERVICE);
+        NotificationManager service = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        service.createNotificationChannel(chan);
+        return channelId;
+    }
+
+    @SuppressLint("RestrictedApi")
     private void showNotification(boolean loud, boolean noAction) {
 
         Intent notificationIntent = new Intent(this, MainActivity.class);
@@ -135,7 +152,12 @@ public class CountersForegroundService extends Service {
 
         Bitmap icon = BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher);
 
-        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this);
+        String channelId = "";
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            channelId =  createNotificationChannel("my_service", "My Background Service");
+        }
+
+        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this, channelId);
 
         notificationBuilder.setContentTitle(getString(R.string.title_counters))
                 .setTicker("Aplikacija se izvaja v ozadju")
@@ -148,6 +170,7 @@ public class CountersForegroundService extends Service {
 
         if (noAction) {
             notificationBuilder.mActions.clear();
+
         }
 
         Notification noti = notificationBuilder.build();

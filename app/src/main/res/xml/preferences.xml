@@ -59,7 +59,7 @@
             android:key="prefAppVersion"
             android:layout="@layout/switch_preference"
             android:summary="Verzija"
-            android:title="Prometni števci 1.0.2"
+            android:title="Prometni števci 1.0.3"
 
             />
 

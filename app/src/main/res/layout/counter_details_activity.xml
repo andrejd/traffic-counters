@@ -227,7 +227,6 @@
                     </LinearLayout>
 
 
-
                     <com.github.mikephil.charting.charts.CombinedChart
                         android:id="@+id/chart1"
                         android:layout_width="match_parent"
@@ -235,7 +234,7 @@
                         android:layout_below="@id/currentCounterDetails"
                         android:layout_marginLeft="7dp"
                         android:layout_marginRight="10dp"
-                        android:paddingBottom="15dp"/>
+                        android:paddingBottom="15dp" />
 
                     <com.wang.avi.AVLoadingIndicatorView
                         android:id="@+id/avLoadingIndicatorView"
@@ -365,6 +364,7 @@
                 fab:fab_shadowRadius="4dp"
                 fab:fab_shadowXOffset="1dp"
                 fab:fab_shadowYOffset="1dp"
+                android:onClick="onOptionClick"
                 fab:fab_showShadow="true"/>
 
             <com.github.clans.fab.FloatingActionButton
@@ -372,6 +372,7 @@
                 android:layout_marginRight="3dp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:onClick="onOptionClick"
                 style="@style/MenuButtonsStyle"
                 android:src="@drawable/ic_8h"
                 fab:fab_label=""

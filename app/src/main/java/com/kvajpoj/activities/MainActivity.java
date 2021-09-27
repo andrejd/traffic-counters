@@ -45,29 +45,18 @@ public class MainActivity extends AppCompatActivity implements
     private static final String SEARCH_TAPPED = "SearchTapped";
     private static final String TAB_SELECTED = "TabSelected";
 
-    @Bind(R.id.app_bar)
     Toolbar mToolbar;
-    @Bind(R.id.viewPager)
     ViewPager mPager;
-    @Bind(R.id.tabs)
     TabLayout mTabs;
-    @Bind(R.id.coordinator)
     CoordinatorLayout mCoordinator;
-    @Bind(R.id.drawer_layout)
     DrawerLayout mLayout;
-    @Bind(R.id.card_search)
     CardView card_search;
-    @Bind(R.id.image_search_back)
     ImageView image_search_back;
-    @Bind(R.id.clearSearch)
     ImageView clearSearch;
-    @Bind(R.id.edit_text_search)
     EditText edit_text_search;
-    @Bind(R.id.app_bar_layout)
     AppBarLayout mAppBarLayout;
-    @Bind(R.id.toolbarWrapper)
-
     FrameLayout mToolbarWrapper;
+
     int index = 0;
     private ViewPagerAdapter mAdapter;
     private Object mCurrentFragment;
@@ -80,7 +69,19 @@ public class MainActivity extends AppCompatActivity implements
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        ButterKnife.bind(this);
+
+        mToolbar = findViewById(R.id.app_bar);
+        mPager = findViewById(R.id.viewPager);
+        mTabs = findViewById(R.id.tabs);
+        mCoordinator = findViewById(R.id.coordinator);
+        mLayout = findViewById(R.id.drawer_layout);
+        card_search = findViewById(R.id.card_search);
+        image_search_back = findViewById(R.id.image_search_back);
+        clearSearch = findViewById(R.id.clearSearch);
+        edit_text_search = findViewById(R.id.edit_text_search);
+        mAppBarLayout = findViewById(R.id.app_bar_layout);
+        mToolbarWrapper = findViewById(R.id.toolbarWrapper);
+
         setupToolbar();
         setupPages();
         InitiateSearch();
@@ -186,7 +187,7 @@ public class MainActivity extends AppCompatActivity implements
 
             case TAB_SELECTED:
                 if (mSearchHelper.isSearchVisible()) mSearchHelper.toggleSearch();
-                manageSearchIcon(event.getValue() == 0 ? false : true); // hide search
+                manageSearchIcon(event.getValue() != 0); // hide search
                 break;
 
             case SearchHelper.SEARCH_CLOSED:

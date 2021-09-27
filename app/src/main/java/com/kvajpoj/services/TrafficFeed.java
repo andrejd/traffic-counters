@@ -189,7 +189,7 @@ public class TrafficFeed {
 
                         private String stevci_gap;
                         private String stevci_statOpis;
-                        private int stevci_hit;
+                        private String stevci_hit;
                         private int stevci_stev;
                         private String stevci_pasOpis;
                         private String stevci_smerOpis;
@@ -201,8 +201,8 @@ public class TrafficFeed {
                         public String getStevci_statOpis() { return stevci_statOpis; }
                         public void setStevci_statOpis(String stevci_statOpis) { this.stevci_statOpis = stevci_statOpis; }
 
-                        public int getStevci_hit() { return stevci_hit; }
-                        public void setStevci_hit(int stevci_hit) { this.stevci_hit = stevci_hit; }
+                        public String getStevci_hit() { return stevci_hit; }
+                        public void setStevci_hit(String stevci_hit) { this.stevci_hit = stevci_hit; }
 
                         public int getStevci_stev() { return this.stevci_stev; }
                         public void setStevci_stev(int stevci_stev) { this.stevci_stev = stevci_stev; }
@@ -245,7 +245,7 @@ public class TrafficFeed {
         private int stevci_geoY;
         private int stevci_geoX;
         private String stevci_statOpis;
-        private int stevci_hit;
+        private String stevci_hit;
         private String summary;
         private String stevci_pasOpis;
         private int stevci_lokacija;
@@ -317,8 +317,8 @@ public class TrafficFeed {
         public String getStevci_statOpis() { return stevci_statOpis; }
         public void setStevci_statOpis(String stevci_statOpis) { this.stevci_statOpis = stevci_statOpis; }
 
-        public int getStevci_hit() { return stevci_hit; }
-        public void setStevci_hit(int stevci_hit) { this.stevci_hit = stevci_hit; }
+        public String getStevci_hit() { return stevci_hit; }
+        public void setStevci_hit(String stevci_hit) { this.stevci_hit = stevci_hit; }
 
         public String getSummary() { return summary; }
         public void setSummary(String summary) { this.summary = summary; }
