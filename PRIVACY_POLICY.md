@@ -1,4 +1,5 @@
-Traffic Counters: Privacy policy
+## Traffic Counters: Privacy policy
+
 Welcome to the Traffic Counters app for Android!
 
 This is an open source Android app developed by Andrej Debeljak. The source code is available on GitHub under the MIT license; the app is also available on Google Play.
